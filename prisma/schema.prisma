@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// prisma/schema.prisma
+model User {
+  id    String @id @default(uuid())
+  name  String
+  email String @unique
+  role  String?
+  tasksAssigned Task[] @relation("AssignedTasks")
+  tasksCreated  Task[] @relation("CreatedTasks")
+}
+
+model Aquarium {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  location    String?
+  telephone   String
+  periodeEntretiens?  integer
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tasks       Task[] @relation("AquariumTasks")
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  title     String
+  description String?
+  solution  String?
+  status    String   @default("Entretien")
+  excutionDate   DateTime?
+  dateProgrammed  DateTime
+  cout       Float?
+  completed Boolean  @default(false)
+  aquariumId String
+  aquarium   Aquarium @relation("AquariumTasks",fields: [aquariumId], references: [id])
+  userId    String
+  user      User     @relation("AssignedTasks", fields: [userId], references: [id])
+  createdBy String
+  creator   User     @relation("CreatedTasks", fields: [createdBy], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+
