@@ -17,7 +17,7 @@ interface AppUser {
     name: string; // Utilisé pour le label du select
     // Ajoutez ici tous les autres champs que listUser retourne
     email?: string; 
-    role?: string;
+    role?: string | null;
 }
 
 const Gazon = () => {

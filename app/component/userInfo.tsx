@@ -3,7 +3,7 @@ import Image from "next/image";
 import React, { FC } from "react";
 
 interface UserInfoProps {
-  role: string;
+  role: string | null;
   email: string | null;
   name: string | null;
 }
