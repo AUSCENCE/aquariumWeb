@@ -37,7 +37,7 @@ const Utilisateur = () => {
         
 
         {users?.map((user, index) => (
-          <div className="card bg-base-100 shadow-sm p-3">
+          <div key={index} className="card bg-base-100 shadow-sm p-3">
             <UserInfo
                 key={user.id || index} // Use user.id if available, much better for keys
                 name={user.name}

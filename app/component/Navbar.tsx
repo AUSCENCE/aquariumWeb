@@ -29,7 +29,7 @@ const Navbar = () => {
   const renderNavLinks = (className : string ) => {
     return navLinks.map((link) => (
 
-      <Link key={link.href} href={link.href} className={`btn btn-sm ${className} ${isActiveLink(link.href) ? 'btn-primary' : ''}`}>
+      <Link key={link.href} href={link.href} className={` p-2 ${className} ${isActiveLink(link.href) ? 'font-bold text-primary' : ''}`}>
         {link.label}
       </Link>
 

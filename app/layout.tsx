@@ -35,12 +35,13 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <ClerkProvider>
             <html lang="fr" data-theme="light" className={`${bricolage.variable} ${ptSerif.variable}`}>
+                <title>Aquarium</title>
                 <body className={bricolage.className}>
-                    {children}
+                    <ClerkProvider>
+                        {children}
+                    </ClerkProvider>
                 </body>
             </html>
-        </ClerkProvider>
     )
 }

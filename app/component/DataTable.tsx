@@ -1,25 +1,29 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-// Remplacez par vos imports d'icônes réels (ex: de 'lucide-react')
 import { Search, Edit2Icon, Trash, InfoIcon, NotebookTabs } from 'lucide-react'; 
 
 // --- TYPESCRIPT INTERFACES ---
 
-// Définit la structure d'un élément de donnée
+// Les champs sont marqués comme optionnels (?)
 interface DataItem {
     id: number;
     name: string;
-    job: string;
-    favoriteColor: string;
-    // Ajoutez d'autres champs si nécessaire
+    job?: string; 
+    favoriteColor?: string;
+    telephone?: string;
+    location?: string;
+    [key: string]: any; // Permet l'accès dynamique aux clés (pour la recherche)
 }
 
-// Définit les props pour le composant
+interface TableColumn {
+    key: keyof DataItem | 'actions';
+    header: string;
+}
+
 interface DataDisplayTableProps {
     data: DataItem[];
-    // Vous pouvez rendre les colonnes dynamiques
-    columns: { key: keyof DataItem | 'actions'; header: string }[];
+    columns: TableColumn[];
     itemsPerPage?: number;
 }
 
@@ -30,37 +34,49 @@ export default function DataDisplayTable({
     columns,
     itemsPerPage = 10,
 }: DataDisplayTableProps) {
-    // États pour la pagination, la recherche et le filtrage
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
-    // Vous pouvez ajouter un état pour le filtrage si nécessaire (ex: filterByJob)
 
-    // --- LOGIQUE DE FILTRAGE ET RECHERCHE ---
+    // -------------------------------------------------------------------
+         // LOGIQUE DE FILTRAGE ET RECHERCHE (CORRIGÉE)
+    // -------------------------------------------------------------------
     const filteredData = useMemo(() => {
         if (!searchTerm) return data;
 
         const lowerCaseSearch = searchTerm.toLowerCase();
 
-        return data.filter(item =>
-            // Recherche par nom ou par job (vous pouvez étendre ceci)
-            item.name.toLowerCase().includes(lowerCaseSearch) ||
-            item.job.toLowerCase().includes(lowerCaseSearch)
-        );
-    }, [data, searchTerm]);
+        return data.filter(item => {
+            // 1. Convertir l'objet en tableau de ses valeurs
+            const itemValues = Object.values(item);
 
-    // --- LOGIQUE DE PAGINATION ---
+            // 2. Parcourir toutes les valeurs de l'objet Item pour la recherche
+            return itemValues.some(value => {
+                // S'assurer que la valeur existe et est une chaîne de caractères
+                if (value !== null && typeof value !== 'undefined') {
+                    // Convertir la valeur en chaîne et vérifier l'inclusion du terme
+                    return String(value).toLowerCase().includes(lowerCaseSearch);
+                }
+                return false;
+            });
+        });
+    }, [data, searchTerm]);
+    
+    // -------------------------------------------------------------------
+        // LOGIQUE DE PAGINATION (INCHANGÉE)
+    // -------------------------------------------------------------------
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
-    // Fonctions de navigation
     const goToPage = (page: number) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
     };
- // ... suite du composant DataDisplayTable
 
+    // -------------------------------------------------------------------
+        // RENDU JSX (AJUSTEMENTS MINEURS)
+    // -------------------------------------------------------------------
     return (
         <div className="card bg-base-100 card-md shadow-sm">
             <div className="card-body">
@@ -71,7 +87,7 @@ export default function DataDisplayTable({
                         <input
                             type="text"
                             className="grow"
-                            placeholder="Rechercher..."
+                            placeholder="Rechercher dans toutes les colonnes..."
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
@@ -84,36 +100,29 @@ export default function DataDisplayTable({
                 {/* --- GRANDE TABLE (BUREAU) --- */}
                 <div className="overflow-x-auto rounded-box border border-base-content/5 mb-3 bg-base-100 hidden md:block">
                     <table className="table">
-                        {/* Tête du tableau (Head) */}
                         <thead>
                             <tr>
-                                {columns.map((col, index) => (
-                                    <th key={index}>{col.header}</th>
+                                {columns.map((col) => (
+                                    <th key={col.key}>{col.header}</th>
                                 ))}
                             </tr>
                         </thead>
-                        {/* Corps du tableau (Body) */}
                         <tbody>
-                            {paginatedData.map((item, index) => (
+                            {paginatedData.map((item) => (
                                 <tr key={item.id}>
                                     {columns.map((col) => (
                                         <td key={col.key}>
                                             {col.key === 'actions' ? (
                                                 <div className="flex items-center">
-                                                    {/* Exemple de boutons d'action */}
-                                                    <button className="btn btn-sm btn-neutral mx-1 tooltip" data-tip="Détails">
-                                                        <InfoIcon className="w-4 h-4" />
-                                                    </button>
-                                                    <button className="btn btn-sm btn-primary mx-1 tooltip" data-tip="Éditer">
-                                                        <Edit2Icon className="w-4 h-4" />
-                                                    </button>
-                                                    <button className="btn btn-sm btn-secondary mx-1 tooltip" data-tip="Supprimer">
-                                                        <Trash className="w-4 h-4" />
-                                                    </button>
+                                                    {/* Boutons d'action inchangés */}
+                                                    <button className="btn btn-sm btn-neutral mx-1 tooltip" data-tip="Détails"><InfoIcon className="w-4 h-4" /></button>
+                                                    <button className="btn btn-sm btn-primary mx-1 tooltip" data-tip="Éditer"><Edit2Icon className="w-4 h-4" /></button>
+                                                    <button className="btn btn-sm btn-secondary mx-1 tooltip" data-tip="Supprimer"><Trash className="w-4 h-4" /></button>
                                                 </div>
                                             ) : (
-                                                // Afficher les données standard
-                                                item[col.key as keyof DataItem]
+                                                // Afficher les données standard (utilise l'accès dynamique)
+                                                // La conversion en String() est utile pour afficher les nombres/booleans
+                                                String(item[col.key as keyof DataItem] ?? '') 
                                             )}
                                         </td>
                                     ))}
@@ -122,7 +131,8 @@ export default function DataDisplayTable({
                             {paginatedData.length === 0 && (
                                 <tr>
                                     <td colSpan={columns.length} className="text-center py-4">
-                                        Aucune donnée trouvée.
+                                        {/* Afficher un message si la recherche ne donne rien */}
+                                        {searchTerm ? `Aucun résultat trouvé pour "${searchTerm}".` : 'Aucune donnée trouvée.'}
                                     </td>
                                 </tr>
                             )}
@@ -137,8 +147,8 @@ export default function DataDisplayTable({
                             <div className="card-body">
                                 <h2 className="card-title text-lg">{item.name}</h2>
                                 <p className="text-sm">
-                                    **Poste :** {item.job}<br/>
-                                    **Couleur :** {item.favoriteColor}
+                                    **Téléphone :** {item.telephone ?? 'N/A'}<br/>
+                                    **Lieu :** {item.location ?? 'N/A'}
                                 </p>
                                 <div className="justify-end card-actions mt-2">
                                     <button className="btn btn-sm btn-neutral mx-1">
@@ -166,7 +176,6 @@ export default function DataDisplayTable({
                             Précédent
                         </button>
                         
-                        {/* Affichage simple de la page actuelle */}
                         <button className="join-item btn btn-ghost">
                             Page {currentPage} / {totalPages}
                         </button>
