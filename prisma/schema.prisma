@@ -29,7 +29,7 @@ model Aquarium {
   description String?
   location    String?
   telephone   String
-  periodeEntretiens?  integer
+  periodeEntretiens?  int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   tasks       Task[] @relation("AquariumTasks")
